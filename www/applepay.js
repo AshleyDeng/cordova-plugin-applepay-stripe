@@ -25,7 +25,7 @@ var ApplePay = {
             }, function(message) {
                 executeCallback(errorCallback, message);
                 reject(message);
-            }, 'ApplePay', 'setPublishableKey', [key]);
+            }, 'ApplePay', 'updatePublishableKey', [key]);
         });
 
     },
