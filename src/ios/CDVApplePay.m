@@ -7,9 +7,7 @@
 @synthesize paymentCallbackId;
 
 
-- (void)pluginInitialize
-{
-
+- (void)pluginInitialize {
     // Set these to the payment cards accepted.
     // They will nearly always be the same.
     supportedPaymentNetworks = @[PKPaymentNetworkVisa, PKPaymentNetworkMasterCard, PKPaymentNetworkAmex];
@@ -29,8 +27,6 @@
     NSLog(@"ApplePay appleMerchantIdentifier == %@", appleMerchantIdentifier);
     [[STPPaymentConfiguration sharedConfiguration] setPublishableKey:stripePublishableKey];
     [[STPPaymentConfiguration sharedConfiguration] setAppleMerchantIdentifier:appleMerchantIdentifier];
-
-
 }
 
 - (NSMutableDictionary*)applyABRecordBillingAddress:(ABRecordRef)address forDictionary:(NSMutableDictionary*)response {
@@ -183,6 +179,15 @@
     return response;
 }
 
+- (void)updatePublishableKey:(CDVInvokedUrlCommand*)command {
+    NSString *stripePublishableKey = [command.arguments objectAtIndex:0];
+    NSLog(@"Updating new publishable key == %@", stripePublishableKey);
+
+    [[STPPaymentConfiguration sharedConfiguration] setPublishableKey:stripePublishableKey];
+
+    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString: @"Publishable key updated."];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
 
 - (void)canMakePayments:(CDVInvokedUrlCommand*)command
 {

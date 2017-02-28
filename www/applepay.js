@@ -11,6 +11,26 @@ var executeCallback = function(callback, message) {
 var ApplePay = {
 
     /**
+     * Allow Cordova to update the publish key on the fly
+     * @param {String} [key] - the pubilshable key to be set
+     * @param {Function} [successCallback] - Optional success callback, recieves message object.
+     * @param {Function} [errorCallback] - Optional error callback, recieves message object.
+     * @returns {Promise}
+     */
+    updatePublishableKey: function(key, successCallback, errorCallback) {
+        return new Promise(function(resolve, reject) {
+            exec(function(message) {
+                executeCallback(successCallback, message);
+                resolve(message);
+            }, function(message) {
+                executeCallback(errorCallback, message);
+                reject(message);
+            }, 'ApplePay', 'setPublishableKey', [key]);
+        });
+
+    },
+
+    /**
      * Determines if the current device supports Apple Pay and has a supported card installed.
      * @param {Function} [successCallback] - Optional success callback, recieves message object.
      * @param {Function} [errorCallback] - Optional error callback, recieves message object.
