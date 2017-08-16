@@ -10,11 +10,11 @@
 - (void)pluginInitialize {
     // Set these to the payment cards accepted.
     // They will nearly always be the same.
-    supportedPaymentNetworks = @[PKPaymentNetworkVisa, PKPaymentNetworkMasterCard, PKPaymentNetworkAmex];
+    supportedPaymentNetworks = @[PKPaymentNetworkVisa, PKPaymentNetworkMasterCard, PKPaymentNetworkAmex, PKPaymentNetworkDiscover, PKPaymentNetworkInterac];
 
     // Set the capabilities that your merchant supports
     // Adyen for example, only supports the 3DS one.
-    merchantCapabilities = PKMerchantCapability3DS;// PKMerchantCapabilityEMV;
+    merchantCapabilities = PKMerchantCapability3DS | PKMerchantCapabilityCredit | PKMerchantCapabilityDebit;// PKMerchantCapabilityEMV;
 
     // Stripe Publishable Key
 #ifndef NDEBUG
@@ -184,8 +184,10 @@
     NSLog(@"Updating new publishable key == %@", stripePublishableKey);
 
     [[STPPaymentConfiguration sharedConfiguration] setPublishableKey:stripePublishableKey];
-
-    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString: @"Publishable key updated."];
+    NSLog(@"%@", [[STPPaymentConfiguration sharedConfiguration] publishableKey]);
+    
+    NSString *returnMessage = [NSString stringWithFormat:@"Publishable key updated: %@", [[STPPaymentConfiguration sharedConfiguration] publishableKey]];
+    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString: returnMessage];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
@@ -443,7 +445,7 @@
     [self.commandDelegate sendPluginResult:result callbackId:self.paymentCallbackId];
 }
 
-- (NSDictionary*) formatPaymentForApplication:(PKPayment *)payment {
+- (NSMutableDictionary*) formatPaymentForApplication:(PKPayment *)payment {
     NSString *paymentData = [payment.token.paymentData base64EncodedStringWithOptions:0];
 
     //    NSDictionary *response = @{
@@ -599,8 +601,8 @@
 {
     NSLog(@"CDVApplePay: didAuthorizePayment");
 
-    [[STPAPIClient sharedClient] createTokenWithPayment:payment 
-                            completion:^(STPToken * _Nullable token, NSError * _Nullable error) {        
+    STPAPIClient *client = [[STPAPIClient alloc] initWithPublishableKey: [[STPPaymentConfiguration sharedConfiguration] publishableKey]];
+    [client createTokenWithPayment:payment completion:^(STPToken * _Nullable token, NSError * _Nullable error) {
         NSMutableDictionary* response = [self formatPaymentForApplication:payment];      
         NSLog(@"Stripe token == %@", token.tokenId);        
         if (token) {
